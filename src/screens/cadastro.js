@@ -12,6 +12,7 @@ const RealizarLogin = ({ navigation }) => {
         if (!email || !password) {
             alert("Preencha todos os campos");
             return;
+            
         }
 
         setLoading(true);
