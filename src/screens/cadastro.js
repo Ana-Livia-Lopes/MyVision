@@ -1,4 +1,5 @@
 // Ana Lívia dos Santos Lopes nº1 DS
+// Isadora Gomes da Silva nº9 DS
 
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Pressable, Image, onSubmit, texto, carregando } from 'react-native';
@@ -20,7 +21,6 @@ const RealizarLogin = ({ navigation }) => {
             await signInWithEmailAndPassword(auth, email, password);
             navigation.navigate('Perfil');
         } catch (error) {
-            navigation.navigate('Perfil');
             console.error('Erro ao fazer login:', error.message);
             alert("Email ou senha inválidos");
         } finally {
@@ -36,6 +36,11 @@ const RealizarLogin = ({ navigation }) => {
 
             <TextInput
                 placeholder="Nome de usuário"
+                style={styles.input}
+                placeholderTextColor="#999999"
+            />
+            <TextInput
+                placeholder="Email"
                 onChangeText={setEmail}
                 value={email}
                 style={styles.input}
@@ -96,7 +101,7 @@ const styles = StyleSheet.create({
         color: '#333'
     },
     botao: {
-        backgroundColor: '#007AFF',
+        backgroundColor: '#924DBF',
         padding: 15,
         borderRadius: 26,
         width: '60%',

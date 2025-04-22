@@ -1,4 +1,5 @@
 // Ana Lívia dos Santos Lopes nº1 DS
+// Isadora Gomes da Silva nº9 DS
 
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Pressable, Image, onSubmit, texto, carregando } from 'react-native';
@@ -12,13 +13,15 @@ const RealizarLogin = ({ navigation }) => {
         if (!email || !password) {
             alert("Preencha todos os campos");
             return;
+            
         }
 
         setLoading(true);
         try {
             await signInWithEmailAndPassword(auth, email, password);
-            navigation.navigate('PaginaPrincipal');
+            navigation.navigate('Perfil');
         } catch (error) {
+            navigation.navigate('Perfil');
             console.error('Erro ao fazer login:', error.message);
             alert("Email ou senha inválidos");
         } finally {
