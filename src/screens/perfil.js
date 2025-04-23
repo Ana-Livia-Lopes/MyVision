@@ -1,120 +1,194 @@
-// Ana Lívia dos Santos Lopes nº1 DS
-// Isadora Gomes da Silva nº9 DS
+import React, { useState, useEffect } from 'react';
+import {
+  View, Text, TextInput, TouchableOpacity,
+  ScrollView, StyleSheet, Alert
+} from 'react-native';
+import {
+  getAuth, updateEmail, updatePassword,
+  EmailAuthProvider, reauthenticateWithCredential, signOut
+} from 'firebase/auth';
+import { getApp } from 'firebase/app';
+import { useNavigation } from '@react-navigation/native';
+import '../../firebaseConfig';
 
-import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Pressable, Image, onSubmit, texto, carregando } from 'react-native';
+export default function CadastroUsuario() {
+  const [novaSenha, setNovaSenha] = useState('');
+  const [senhaAtual, setSenhaAtual] = useState('');
+  const [novoEmail, setNovoEmail] = useState('');
+  const [user, setUser] = useState(null);
+  const navigation = useNavigation();
 
-const RealizarLogin = ({ navigation }) => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    const auth = getAuth(getApp());
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      setNovoEmail(currentUser.email);
+      setUser(currentUser);
+    }
+  }, []);
 
-    const TentarLogar = async () => {
-        if (!email || !password) {
-            alert("Preencha todos os campos");
-            return;
-            
-        }
+  const atualizarCredenciais = async () => {
+    const auth = getAuth();
+    const user = auth.currentUser;
 
-        setLoading(true);
-        try {
-            await signInWithEmailAndPassword(auth, email, password);
-            navigation.navigate('Perfil');
-        } catch (error) {
-            navigation.navigate('Perfil');
-            console.error('Erro ao fazer login:', error.message);
-            alert("Email ou senha inválidos");
-        } finally {
-            setLoading(false);
-        }
-    };
+    if (!user) {
+      Alert.alert('Erro', 'Nenhum usuário autenticado.');
+      return;
+    }
 
-    return (
-        <View style={styles.container}>
-            
-            <View style={styles.efeitoBranco}>
-            <Text style={styles.title}>Login</Text>
+    try {
+      const credential = EmailAuthProvider.credential(user.email, senhaAtual);
+      await reauthenticateWithCredential(user, credential);
 
-            <TextInput
-                placeholder="Nome de usuário"
-                onChangeText={setEmail}
-                value={email}
-                style={styles.input}
-                placeholderTextColor="#999999"
-                keyboardType="email-address"
-                autoCapitalize="none"
-            />
-            <TextInput
-                placeholder="Senha"
-                onChangeText={setPassword}
-                value={password}
-                style={styles.input}
-                secureTextEntry={true}
-                placeholderTextColor="#999999"
-            />
-            <Pressable style={styles.botao} onPress={TentarLogar} disabled={loading}>
-                <Text style={styles.botaoTexto}>
-                    {loading ? 'Carregando...' : 'Entrar'}
-                </Text>
-            </Pressable>
-            </View>
+      if (novoEmail) await updateEmail(user, novoEmail);
+      if (novaSenha) await updatePassword(user, novaSenha);
 
+      Alert.alert('Sucesso', 'Credenciais atualizadas com sucesso!');
+    } catch (error) {
+      console.error('Erro ao atualizar credenciais:', error);
+      Alert.alert('Erro', error.message);
+    }
+  };
 
+  const handleLogout = async () => {
+    try {
+      await signOut(getAuth());
+      navigation.navigate('Login'); // vai pra tela de login
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível sair.');
+    }
+  };
+
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      {/* Botão de sair */}
+      <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+        <Text style={styles.logoutText}>Sair</Text>
+      </TouchableOpacity>
+
+      {/* Box de perfil */}
+      <View style={styles.card}>
+        <Text style={styles.title}>Perfil do Usuário</Text>
+
+        <View style={styles.infoBox}>
+          <Text style={styles.infoLabel}>Nome:</Text>
+          <Text style={styles.infoValue}>Não informado</Text>
         </View>
-    );
-};
+
+        <View style={styles.infoBox}>
+          <Text style={styles.infoLabel}>Email:</Text>
+          <Text style={styles.infoValue}>{user?.email || '---'}</Text>
+        </View>
+      </View>
+
+      {/* Box de edição */}
+      <View style={styles.card}>
+        <Text style={styles.title}>Editar Credenciais</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Senha Atual"
+          value={senhaAtual}
+          onChangeText={setSenhaAtual}
+          secureTextEntry
+          placeholderTextColor="#999"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Novo Email"
+          value={novoEmail}
+          onChangeText={setNovoEmail}
+          keyboardType="email-address"
+          placeholderTextColor="#999"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Nova Senha"
+          value={novaSenha}
+          onChangeText={setNovaSenha}
+          secureTextEntry
+          placeholderTextColor="#999"
+        />
+
+        <TouchableOpacity onPress={atualizarCredenciais} style={styles.updateButton}>
+          <Text style={styles.buttonText}>Atualizar Credenciais</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  );
+}
 
 const styles = StyleSheet.create({
-    container: {
-        backgroundColor: '#924DBF',
-        padding: 20,
-        height: "93vh",
-        padding: 0,
-    },
-    efeitoBranco: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: "white",
-        borderTopLeftRadius: 333,
-        borderBottomRightRadius: 333,
-        width: "100%",
-    },
-    title: {
-        fontSize: 38,
-        fontWeight: 'bold',
-        marginBottom: 20,
-        color: '#4A2574',
-        marginBottom: 30,
-    },
-    input: {
-        width: '90%',
-        padding: 15,
-        borderRadius: 28,
-        backgroundColor: '#e8e8e8',
-        marginBottom: 15,
-        fontSize: 16,
-        color: '#333'
-    },
-    botao: {
-        backgroundColor: '#007AFF',
-        padding: 15,
-        borderRadius: 26,
-        width: '60%',
-        alignItems: 'center',
-        elevation: 3,
-        marginTop: 30
-    },
-    botaoTexto: {
-        color: 'white',
-        fontSize: 18,
-        fontWeight: 'bold'
-    },
-    imagem: {
-        width: 300,
-        height: 100,
-        marginBottom: 60
-    }
+  container: {
+    padding: 20,
+    backgroundColor: '#f4f1fa',
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+  logoutButton: {
+    backgroundColor: '#d1d5db',
+    padding: 10,
+    borderRadius: 10,
+    alignSelf: 'flex-end',
+    marginBottom: 10,
+  },
+  logoutText: {
+    color: '#6b21a8',
+    fontWeight: 'bold',
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 25,
+    shadowColor: '#7f5af0',
+    shadowOffset: { width: 1, height: 5 },
+    shadowOpacity: 0.9,
+    shadowRadius: 8,
+    elevation: 6,
+    marginBottom: 30,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#6a0dad',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  input: {
+    backgroundColor: '#f9f5ff',
+    borderColor: '#a855f7',
+    borderWidth: 2,
+    borderRadius: 8,
+    padding: 14,
+    marginBottom: 16,
+    fontSize: 16,
+    color: '#333',
+  },
+  updateButton: {
+    backgroundColor: '#7c3aed',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  infoBox: {
+    backgroundColor: '#e9d5ff',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  infoLabel: {
+    fontWeight: 'bold',
+    color: '#6a0dad',
+    fontSize: 14,
+  },
+  infoValue: {
+    color: '#4c1d95',
+    fontSize: 16,
+  },
 });
-
-export default RealizarLogin;
