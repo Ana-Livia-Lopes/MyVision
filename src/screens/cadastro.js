@@ -3,8 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert 
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, getFirestore } from 'firebase/firestore';
 import { getApp } from 'firebase/app';
-
-import '../../firebaseConfig'; // Certifique-se de que esse caminho está correto
+import '../../firebaseConfig'; 
+import Swal from 'sweetalert2';
 
 export default function CadastroUsuario() {
     const [nome, setNome] = useState('');
@@ -16,7 +16,7 @@ export default function CadastroUsuario() {
         const firestore = getFirestore(getApp());
 
         if (!nome || !email || !senha) {
-            Alert.alert('Atenção', 'Preencha todos os campos.');
+            alert('Atenção', 'Preencha todos os campos.');
             return;
         }
 
@@ -30,13 +30,14 @@ export default function CadastroUsuario() {
                 email: email,
             });
 
-            Alert.alert('Sucesso', 'Usuário cadastrado com sucesso!');
+            alert('Sucesso, Usuário cadastrado com sucesso!', 'Usuário cadastrado com sucesso!');
             setNome('');
             setEmail('');
             setSenha('');
+
         } catch (error) {
             console.error('Erro no cadastro:', error);
-            Alert.alert('Erro', error.message);
+            alert('Erro', error.message);
         }
     };
 

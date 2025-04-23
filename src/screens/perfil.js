@@ -5,8 +5,9 @@ import {
 } from 'react-native';
 import {
   getAuth, updateEmail, updatePassword,
-  EmailAuthProvider, reauthenticateWithCredential, signOut
+  EmailAuthProvider, reauthenticateWithCredential, signOut, onAuthStateChanged
 } from 'firebase/auth';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { getApp } from 'firebase/app';
 import { useNavigation } from '@react-navigation/native';
 import '../../firebaseConfig';
@@ -16,15 +17,39 @@ export default function CadastroUsuario() {
   const [senhaAtual, setSenhaAtual] = useState('');
   const [novoEmail, setNovoEmail] = useState('');
   const [user, setUser] = useState(null);
+  const [nome, setNome] = useState(''); // 👈 nome do Firestore
   const navigation = useNavigation();
 
   useEffect(() => {
     const auth = getAuth(getApp());
-    const currentUser = auth.currentUser;
-    if (currentUser) {
-      setNovoEmail(currentUser.email);
-      setUser(currentUser);
-    }
+
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        setNovoEmail(currentUser.email);
+
+        try {
+          const db = getFirestore(getApp());
+          const docRef = doc(db, 'usuarios', currentUser.uid);
+          const docSnap = await getDoc(docRef);
+
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setNome(data.nome || '');
+          } else {
+            console.log('Usuário não encontrado no Firestore');
+          }
+        } catch (error) {
+          console.log('Erro ao buscar nome:', error);
+        }
+
+      } else {
+        setUser(null);
+        setNome('');
+      }
+    });
+
+    return unsubscribe;
   }, []);
 
   const atualizarCredenciais = async () => {
@@ -53,7 +78,7 @@ export default function CadastroUsuario() {
   const handleLogout = async () => {
     try {
       await signOut(getAuth());
-      navigation.navigate('Login'); // vai pra tela de login
+      navigation.navigate('Login');
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível sair.');
     }
@@ -62,9 +87,6 @@ export default function CadastroUsuario() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {/* Botão de sair */}
-      <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-        <Text style={styles.logoutText}>Sair</Text>
-      </TouchableOpacity>
 
       {/* Box de perfil */}
       <View style={styles.card}>
@@ -72,13 +94,18 @@ export default function CadastroUsuario() {
 
         <View style={styles.infoBox}>
           <Text style={styles.infoLabel}>Nome:</Text>
-          <Text style={styles.infoValue}>Não informado</Text>
+          <Text style={styles.infoValue}>{nome || 'Não informado'}</Text>
         </View>
 
         <View style={styles.infoBox}>
           <Text style={styles.infoLabel}>Email:</Text>
           <Text style={styles.infoValue}>{user?.email || '---'}</Text>
         </View>
+
+      <TouchableOpacity onPress={handleLogout} style={styles.updateButton}>
+        <Text style={styles.buttonText}>Sair</Text>
+      </TouchableOpacity>
+
       </View>
 
       {/* Box de edição */}

@@ -23,7 +23,11 @@ const RealizarLogin = ({ navigation }) => {
         const auth = getAuth(getApp());
         try {
             await signInWithEmailAndPassword(auth, email, password);
-            navigation.navigate('Perfil');
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Perfil' }],
+              });
+              
         } catch (error) {
             console.error('Erro ao fazer login:', error.message);
             alert("Email ou senha inválidos");
