@@ -4,6 +4,7 @@ import {
     StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity
 } from 'react-native';
 import { db } from '../../firebaseConfig';
+// import { criarNotificacao } from '../services/notificacoesService';
 import { getAuth } from 'firebase/auth';
 import {
     collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc

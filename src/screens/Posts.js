@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { ScrollView, View, Text, TextInput, TouchableOpacity, Image, FlatList, Alert, StyleSheet } from 'react-native';
 import { db, auth } from '../../firebaseConfig';
 import { collection, addDoc, query, orderBy, onSnapshot, updateDoc, doc, increment, serverTimestamp, getDoc, setDoc } from 'firebase/firestore';
+import { criarNotificacao } from './services/notificacoesService';
+import { collection, addDoc, query, orderBy, onSnapshot, updateDoc, doc, increment, serverTimestamp, getDoc } from 'firebase/firestore';
 import * as ImagePicker from 'expo-image-picker';
 import s3 from '../../awsConfig';
 
@@ -104,7 +106,7 @@ const Posts = () => {
       Alert.alert('Erro', 'Falha ao publicar o post.');
     }
   };
-
+  
   const curtirPost = async postId => {
     if (!currentUser) return;
 
@@ -122,14 +124,18 @@ const Posts = () => {
     } else {
       alert('Você já curtiu este post!');
     }
+    const postRef = doc(db, 'posts', postId);
+    await updateDoc(postRef, { likeCount: increment(1) });
+    await criarNotificacao(currentUser.uid, "Alguém curtiu no seu post!", "comentario");
   };
-
+  
   const addComentario = async (postId, commentText) => {
     if (!commentText.trim()) return;
 
     const userDoc = await getDoc(doc(db, 'usuarios', currentUser.uid));
     const userName = userDoc.exists() ? userDoc.data().nome : 'Usuário';
 
+    
     await addDoc(collection(db, 'posts', postId, 'comments'), {
       authorId: currentUser.uid,
       authorName: userName,
@@ -137,8 +143,9 @@ const Posts = () => {
       createdAt: serverTimestamp(),
     });
 
+    await criarNotificacao(currentUser.uid, "Alguém comentou no seu post!", "comentario");
   };
-
+  
   const renderItem = ({ item }) => (
     <View style={styles.post}>
       <Text style={styles.author}>{item.authorName}</Text>
@@ -155,7 +162,7 @@ const Posts = () => {
             const comment = prompt('Comentário:');
             if (comment) addComentario(item.id, comment);
           }}
-        >
+          >
           <Text style={styles.commentButton}>💬 Comentar</Text>
         </TouchableOpacity>
       </View>

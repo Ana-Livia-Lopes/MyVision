@@ -12,17 +12,35 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.seuapp.expo",
+      "buildNumber": "1.0.0",
+      "infoPlist": {
+        "UIBackgroundModes": ["fetch", "remote-notification"]
+      },
+      "pushNotifications": {
+        "enabled": true
+      }
     },
     "android": {
+      "package": "com.seuapp.expo",
+      "versionCode": 1,
+      "permissions": ["NOTIFICATIONS"],
+      "googleServicesFile": "./google-services.json",
+      "useNextNotificationsApi": true,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       }
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
+    "notification": {
+      "icon": "./assets/notification-icon.png",
+      "color": "#000000",
+      "iosDisplayInForeground": true
     }
   }
 }
