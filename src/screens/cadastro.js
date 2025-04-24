@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Image } from 'react-native';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, getFirestore } from 'firebase/firestore';
 import { getApp } from 'firebase/app';
 import '../../firebaseConfig'; 
-import Swal from 'sweetalert2';
 
 export default function CadastroUsuario() {
     const [nome, setNome] = useState('');
@@ -44,6 +43,7 @@ export default function CadastroUsuario() {
     return (
         <ScrollView contentContainerStyle={styles.container}>
             <View style={styles.efeitoBranco}>
+            <Image source={require("../../assets/logo.png")} style={styles.imagem} />
                 <Text style={styles.title}>Cadastro <br></br>de Usuário</Text>
 
                 <TextInput
@@ -121,4 +121,9 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         fontSize: 16,
     },
+    imagem:{
+        marginBottom: 10,
+        width: 290,
+        height: 80
+    }
 });

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, TextInput, Button, FlatList, Text,
-  StyleSheet, KeyboardAvoidingView, Platform, Alert, TouchableOpacity
+  StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity
 } from 'react-native';
 import { db } from '../../firebaseConfig';
 import { getAuth } from 'firebase/auth';
 import { collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
+import Swal from 'sweetalert2';
 
 export default function ChatScreen() {
   const [message, setMessage] = useState('');
@@ -42,38 +43,45 @@ export default function ChatScreen() {
     try {
       await deleteDoc(doc(db, 'messages', id));
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível apagar a mensagem.');
+      Swal.fire('Erro', 'Não foi possível apagar a mensagem.', 'error');
     }
   };
 
-  const handleLongPress = (item) => {
-    if (user.email === 'ana@gmail.com') {
-      Alert.alert(
-        'Apagar Mensagem',
-        'Deseja apagar esta mensagem?',
-        [
-          { text: 'Cancelar', style: 'cancel' },
-          { text: 'Apagar', onPress: () => deleteMessage(item.id), style: 'destructive' }
-        ]
-      );
-    }
+  const confirmDelete = (id) => {
+    Swal.fire({
+      title: 'Apagar mensagem?',
+      text: 'Essa ação não pode ser desfeita.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sim, apagar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        deleteMessage(id);
+      }
+    });
   };
 
   const renderItem = ({ item }) => {
     const isMyMessage = item.userEmail === user.email;
+    const isAdmin = user?.email === 'ana@gmail.com';
+
     return (
-      <TouchableOpacity onLongPress={() => handleLongPress(item)} activeOpacity={0.7}>
-        <View style={[
-          styles.messageBubble,
-          {
-            alignSelf: isMyMessage ? 'flex-end' : 'flex-start',
-            backgroundColor: isMyMessage ? '#add8e6' : '#DCF8C6'
-          }
-        ]}>
-          <Text style={styles.userName}>{item.userEmail}</Text>
-          <Text style={styles.messageText}>{item.text}</Text>
-        </View>
-      </TouchableOpacity>
+      <View style={[
+        styles.messageBubble,
+        {
+          alignSelf: isMyMessage ? 'flex-end' : 'flex-start',
+          backgroundColor: isMyMessage ? '#add8e6' : '#DCF8C6'
+        }
+      ]}>
+        <Text style={styles.userName}>{item.userEmail}</Text>
+        <Text style={styles.messageText}>{item.text}</Text>
+        {isAdmin && (
+          <TouchableOpacity onPress={() => confirmDelete(item.id)} style={styles.deleteButton}>
+            <Text style={styles.deleteText}>Apagar</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     );
   };
 
@@ -113,6 +121,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginVertical: 5,
     maxWidth: '80%',
+    position: 'relative',
   },
   userName: {
     fontSize: 12,
@@ -122,6 +131,19 @@ const styles = StyleSheet.create({
   },
   messageText: {
     fontSize: 16,
+  },
+  deleteButton: {
+    marginTop: 5,
+    backgroundColor: '#f87171',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    alignSelf: 'flex-end',
+  },
+  deleteText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   inputContainer: {
     flexDirection: 'row',

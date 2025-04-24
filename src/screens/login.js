@@ -2,7 +2,7 @@
 // Isadora Gomes da Silva nº9 DS
 
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Pressable } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Pressable, Image } from 'react-native';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { getApp } from 'firebase/app';
 
@@ -39,6 +39,7 @@ const RealizarLogin = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <View style={styles.efeitoBranco}>
+            <Image source={require("../../assets/logo.png")} style={styles.imagem} />
                 <Text style={styles.title}>Login</Text>
 
                 <TextInput
@@ -113,6 +114,11 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
     },
+    imagem:{
+        marginBottom: 10,
+        width: 290,
+        height: 80
+    }
 });
 
 export default RealizarLogin;

@@ -17,7 +17,7 @@ export default function CadastroUsuario() {
   const [senhaAtual, setSenhaAtual] = useState('');
   const [novoEmail, setNovoEmail] = useState('');
   const [user, setUser] = useState(null);
-  const [nome, setNome] = useState(''); // 👈 nome do Firestore
+  const [nome, setNome] = useState(''); 
   const navigation = useNavigation();
 
   useEffect(() => {
