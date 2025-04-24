@@ -7,7 +7,7 @@ import {
   getAuth, updateEmail, updatePassword,
   EmailAuthProvider, reauthenticateWithCredential, signOut, onAuthStateChanged
 } from 'firebase/auth';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { getApp } from 'firebase/app';
 import { useNavigation } from '@react-navigation/native';
 import '../../firebaseConfig';
@@ -17,7 +17,7 @@ export default function CadastroUsuario() {
   const [senhaAtual, setSenhaAtual] = useState('');
   const [novoEmail, setNovoEmail] = useState('');
   const [user, setUser] = useState(null);
-  const [nome, setNome] = useState(''); 
+  const [nome, setNome] = useState('');
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -52,12 +52,25 @@ export default function CadastroUsuario() {
     return unsubscribe;
   }, []);
 
+  const atualizarNome = async () => {
+    if (!user) return;
+
+    try {
+      const db = getFirestore(getApp());
+      const userRef = doc(db, 'usuarios', user.uid);
+      await updateDoc(userRef, { nome });
+    } catch (error) {
+      console.error('Erro ao atualizar nome:', error);
+      alert('Erro', 'Não foi possível atualizar o nome.');
+    }
+  };
+
   const atualizarCredenciais = async () => {
     const auth = getAuth();
     const user = auth.currentUser;
 
     if (!user) {
-      Alert.alert('Erro', 'Nenhum usuário autenticado.');
+      alert('Erro', 'Nenhum usuário autenticado.');
       return;
     }
 
@@ -67,11 +80,12 @@ export default function CadastroUsuario() {
 
       if (novoEmail) await updateEmail(user, novoEmail);
       if (novaSenha) await updatePassword(user, novaSenha);
+      if (nome) await atualizarNome();
 
-      Alert.alert('Sucesso', 'Credenciais atualizadas com sucesso!');
+      alert('Sucesso, Credenciais atualizadas com sucesso!', 'Credenciais atualizadas com sucesso!');
     } catch (error) {
       console.error('Erro ao atualizar credenciais:', error);
-      Alert.alert('Erro', error.message);
+      alert('Erro', error.message);
     }
   };
 
@@ -80,14 +94,12 @@ export default function CadastroUsuario() {
       await signOut(getAuth());
       navigation.navigate('Login');
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível sair.');
+      alert('Erro', 'Não foi possível sair.');
     }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Botão de sair */}
-
       {/* Box de perfil */}
       <View style={styles.card}>
         <Text style={styles.title}>Perfil do Usuário</Text>
@@ -102,16 +114,22 @@ export default function CadastroUsuario() {
           <Text style={styles.infoValue}>{user?.email || '---'}</Text>
         </View>
 
-      <TouchableOpacity onPress={handleLogout} style={styles.updateButton}>
-        <Text style={styles.buttonText}>Sair</Text>
-      </TouchableOpacity>
-
+        <TouchableOpacity onPress={handleLogout} style={styles.updateButton}>
+          <Text style={styles.buttonText}>Sair</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Box de edição */}
       <View style={styles.card}>
         <Text style={styles.title}>Editar Credenciais</Text>
 
+        <TextInput
+          style={styles.input}
+          placeholder="Nome"
+          value={nome}
+          onChangeText={setNome}
+          placeholderTextColor="#999"
+        />
         <TextInput
           style={styles.input}
           placeholder="Senha Atual"

@@ -4,11 +4,11 @@
     "slug": "MyVision",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/splash.gif",
+    "icon": "./assets/splash.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash.gif",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
