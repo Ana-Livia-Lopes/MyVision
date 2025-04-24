@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ScrollView, View, Text, TextInput, TouchableOpacity, Image, FlatList, Alert, StyleSheet } from 'react-native';
 import { db, auth } from '../../firebaseConfig';
-import { collection, addDoc, query, orderBy, onSnapshot, updateDoc, doc, increment, serverTimestamp, getDoc } from 'firebase/firestore';
+import { collection, addDoc, query, orderBy, onSnapshot, updateDoc, doc, increment, serverTimestamp, getDoc, setDoc } from 'firebase/firestore';
 import * as ImagePicker from 'expo-image-picker';
 import s3 from '../../awsConfig';
 
@@ -106,19 +106,37 @@ const Posts = () => {
   };
 
   const curtirPost = async postId => {
-    const postRef = doc(db, 'posts', postId);
-    await updateDoc(postRef, { likeCount: increment(1) });
+    if (!currentUser) return;
+
+    const likeRef = doc(db, 'posts', postId, 'likes', currentUser.uid);
+    const likeSnap = await getDoc(likeRef);
+
+    if (!likeSnap.exists()) {
+      await setDoc(likeRef, {
+        userId: currentUser.uid,
+        likedAt: serverTimestamp(),
+      });
+
+      const postRef = doc(db, 'posts', postId);
+      await updateDoc(postRef, { likeCount: increment(1) });
+    } else {
+      alert('Você já curtiu este post!');
+    }
   };
 
   const addComentario = async (postId, commentText) => {
     if (!commentText.trim()) return;
 
+    const userDoc = await getDoc(doc(db, 'usuarios', currentUser.uid));
+    const userName = userDoc.exists() ? userDoc.data().nome : 'Usuário';
+
     await addDoc(collection(db, 'posts', postId, 'comments'), {
       authorId: currentUser.uid,
-      authorName: currentUser.displayName || 'Usuário',
+      authorName: userName,
       text: commentText,
       createdAt: serverTimestamp(),
     });
+
   };
 
   const renderItem = ({ item }) => (
@@ -184,64 +202,64 @@ const Posts = () => {
 
 export default Posts;
 const styles = StyleSheet.create({
-    container: {
-      padding: 20,
-    },
-    input: {
-      borderWidth: 1,
-      borderColor: '#ccc',
-      padding: 8,
-      marginBottom: 10,
-      borderRadius: 5,
-    },
-    button: {
-      backgroundColor: '#924DBF',
-      padding: 10,
-      borderRadius: 5,
-      alignItems: 'center',
-      marginBottom: 10,
-    },
-    buttonText: {
-      fontFamily: 'Gotham',
-      color: '#fff',
-      fontWeight: 'bold',
-    },
-    image: {
-      width: 200,
-      height: 200,
-      marginVertical: 10,
-      borderRadius: 10,
-    },
-    list: {
-      marginTop: 20,
-    },
-    post: {
-      padding: 10,
-      borderBottomWidth: 1,
-      borderColor: '#ddd',
-    },
-    author: {
-      fontWeight: 'bold',
-      fontSize: 16,
-    },
-    actions: {
-      flexDirection: 'row',
-      marginTop: 5,
-      gap: 20,
-    },
-    commentButton: {
-      marginLeft: 20,
-    },
-    comment: {
-      marginTop: 5,
-      marginLeft: 10,
-      backgroundColor: '#f0f0f0',
-      padding: 5,
-      borderRadius: 5,
-    },
-    commentAuthor: {
-      fontFamily: 'Gotham',
-      fontWeight: 'bold',
-      fontSize: 12,
-    },
-  });
+  container: {
+    padding: 20,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 8,
+    marginBottom: 10,
+    borderRadius: 5,
+  },
+  button: {
+    backgroundColor: '#924DBF',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  buttonText: {
+    fontFamily: 'Gotham',
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  image: {
+    width: 200,
+    height: 200,
+    marginVertical: 10,
+    borderRadius: 10,
+  },
+  list: {
+    marginTop: 20,
+  },
+  post: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderColor: '#ddd',
+  },
+  author: {
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  actions: {
+    flexDirection: 'row',
+    marginTop: 5,
+    gap: 20,
+  },
+  commentButton: {
+    marginLeft: 20,
+  },
+  comment: {
+    marginTop: 5,
+    marginLeft: 10,
+    backgroundColor: '#f0f0f0',
+    padding: 5,
+    borderRadius: 5,
+  },
+  commentAuthor: {
+    fontFamily: 'Gotham',
+    fontWeight: 'bold',
+    fontSize: 12,
+  },
+});

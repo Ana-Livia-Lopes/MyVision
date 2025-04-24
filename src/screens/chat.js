@@ -18,6 +18,7 @@ export default function ChatScreen() {
     const user = auth.currentUser;
 
     useEffect(() => {
+        
         const q = query(collection(db, 'messages'), orderBy('createdAt', 'asc'));
         const unsubscribe = onSnapshot(q, async snapshot => {
             const msgs = snapshot.docs.map(doc => ({

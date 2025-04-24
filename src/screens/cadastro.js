@@ -1,140 +1,213 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View, Text, TextInput, TouchableOpacity,
+  StyleSheet, Image, Alert
+} from 'react-native';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, getFirestore } from 'firebase/firestore';
 import { getApp } from 'firebase/app';
+import * as ImagePicker from 'expo-image-picker';
+import s3 from '../../awsConfig';
 import '../../firebaseConfig';
 
 export default function CadastroUsuario() {
-    const [nome, setNome] = useState('');
-    const [email, setEmail] = useState('');
-    const [senha, setSenha] = useState('');
+  const [nome, setNome] = useState('');
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+  const [file, setFile] = useState(null);
 
-    const handleRegister = async () => {
-        const auth = getAuth(getApp());
-        const firestore = getFirestore(getApp());
+  const pickFile = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      alert('Permissão necessária', 'Precisamos de permissão para acessar suas fotos.');
+      return;
+    }
 
-        if (!nome || !email || !senha) {
-            alert('Atenção', 'Preencha todos os campos.');
-            return;
-        }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+    });
 
-        try {
-            const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
-            const user = userCredential.user;
+    if (!result.canceled) {
+      setFile(result.assets[0]);
+    }
+  };
 
-            await setDoc(doc(firestore, 'usuarios', user.uid), {
-                uid: user.uid,
-                nome: nome,
-                email: email,
-            });
+  const handleRegister = async () => {
+    const auth = getAuth(getApp());
+    const firestore = getFirestore(getApp());
 
-            alert('Sucesso, Usuário cadastrado com sucesso!', 'Usuário cadastrado com sucesso!');
-            setNome('');
-            setEmail('');
-            setSenha('');
+    if (!nome || !email || !senha) {
+      alert('Atenção', 'Preencha todos os campos.');
+      return;
+    }
 
-        } catch (error) {
-            console.error('Erro no cadastro:', error);
-            alert('Erro', error.message);
-        }
-    };
+    let imageUrl = null;
 
-    return (
-        <ScrollView contentContainerStyle={styles.container}>
-            <View style={styles.efeitoBranco}>
-                    <Image source={require("../../assets/logo.png")} style={styles.imagem} />
-                <View style={styles.boxRoxo}>
-                    <Text style={styles.title}>Cadastro <br></br>de Usuário</Text>
+    if (file) {
+      try {
+        const response = await fetch(file.uri);
+        const blob = await response.blob();
+        const filename = `usuarios/${Date.now()}.jpg`;
 
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Nome"
-                        value={nome}
-                        onChangeText={setNome}
-                    />
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Email"
-                        value={email}
-                        onChangeText={setEmail}
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                    />
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Senha"
-                        value={senha}
-                        onChangeText={setSenha}
-                        secureTextEntry
-                    />
+        const params = {
+          Bucket: 'bucket-storage-senai-9',
+          Key: filename,
+          Body: blob,
+          ContentType: 'image/jpeg',
+        };
 
-                    <TouchableOpacity onPress={handleRegister} style={styles.registerButton}>
-                        <Text style={styles.buttonText}>Cadastrar</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-        </ScrollView>
-    );
+        imageUrl = await new Promise((resolve, reject) => {
+          s3.upload(params, (err, data) => {
+            if (err) reject(err);
+            else resolve(data.Location);
+          });
+        });
+      } catch (error) {
+        console.error('Erro ao subir imagem:', error);
+        return alert('Erro', 'Falha no upload da imagem.');
+      }
+    }
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
+      const user = userCredential.user;
+
+      await setDoc(doc(firestore, 'usuarios', user.uid), {
+        uid: user.uid,
+        nome,
+        email,
+        imageUrl,
+      });
+
+      alert('Usuário cadastrado com sucesso!');
+      setNome('');
+      setEmail('');
+      setSenha('');
+      setFile(null);
+    } catch (error) {
+      console.error('Erro no cadastro:', error);
+      alert('Erro', error.message);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.curvaTopo}>
+        <Image source={require("../../assets/logo.png")} style={styles.imagem} />
+      </View>
+
+      <View style={styles.formulario}>
+        <Text style={styles.title}>Cadastro de Usuário</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Nome"
+          value={nome}
+          onChangeText={setNome}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Senha"
+          value={senha}
+          onChangeText={setSenha}
+          secureTextEntry
+        />
+
+        <TouchableOpacity onPress={pickFile} style={styles.registerButton}>
+          <Text style={styles.buttonText}>Selecionar Foto</Text>
+        </TouchableOpacity>
+
+        {file && (
+          <Image
+            source={{ uri: file.uri }}
+            style={{ width: 100, height: 100, marginVertical: 10, borderRadius: 50 }}
+          />
+        )}
+
+        <TouchableOpacity onPress={handleRegister} style={styles.registerButton}>
+          <Text style={styles.buttonText}>Cadastrar</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.curvaBaixo} />
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        backgroundColor: '#924DBF',
-        height: '100%',
-    },
-    efeitoBranco: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'white',
-        borderTopRightRadius: 333,
-        borderBottomLeftRadius: 333,
-        width: '100%',
-        padding: 20,
-    },
-    boxRoxo:{
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#924DBF',
-        width: '80%',
-        padding: 20,
-        height: "100px"
-    },
-    title: {
-        fontSize: 38,
-        fontWeight: 'bold',
-        color: '#4A2574',
-        marginBottom: 30,
-        textAlign: 'center'
-    },
-    input: {
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        padding: 15,
-        marginBottom: 12,
-        borderWidth: 1,
-        borderColor: '#ccc',
-        fontSize: 16,
-    },
-    registerButton: {
-        backgroundColor: '#924DBF',
-        padding: 15,
-        borderRadius: 26,
-        width: '60%',
-        alignItems: 'center',
-        elevation: 3,
-        marginTop: 30,
-    },
-    buttonText: {
-        color: '#fff',
-        fontWeight: '600',
-        fontSize: 16,
-    },
-    imagem: {
-        marginBottom: 10,
-        width: 290,
-        height: 80
-    }
+  container: {
+    flex: 1,
+    backgroundColor: '#924DBF',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    fontFamily: 'Gotham'
+  },
+  curvaTopo: {
+    width: '100%',
+    height: 130,
+    backgroundColor: 'white',
+    borderBottomLeftRadius: 100,
+    borderBottomRightRadius: 100,
+  },
+  curvaBaixo: {
+    width: '100%',
+    height: 50,
+    backgroundColor: 'white',
+    borderTopLeftRadius: 100,
+    borderTopRightRadius: 100,
+    marginTop: 20,
+  },
+  formulario: {
+    backgroundColor: '#924DBF',
+    width: '90%',
+    borderRadius: 20,
+    padding: 50,
+    marginTop: -80,
+    alignItems: 'center',
+  },
+  imagem: {
+    width: 200,
+    height: 60,
+    resizeMode: 'contain',
+    marginTop: 30,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 20,
+    textAlign: 'center'
+  },
+  input: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 9,
+    width: '100%',
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    fontSize: 16,
+  },
+  registerButton: {
+    backgroundColor: '#d5b9f0',
+    padding: 15,
+    borderRadius: 26,
+    width: '60%',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  buttonText: {
+    color: 'black',
+    fontWeight: '600',
+    fontSize: 16,
+  },
 });
