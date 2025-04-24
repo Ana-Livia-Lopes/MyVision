@@ -1,3 +1,6 @@
+// Ana Lívia dos Santos Lopes nº1 DS
+// Isadora Gomes da Silva nº 9
+
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
@@ -100,6 +103,10 @@ export default function CadastroUsuario() {
       <View style={styles.formulario}>
         <Text style={styles.title}>Cadastro de Usuário</Text>
 
+        <TouchableOpacity onPress={pickFile} style={styles.registerButton}>
+          <Text style={styles.buttonText}>Selecionar Foto</Text>
+        </TouchableOpacity>
+
         <TextInput
           style={styles.input}
           placeholder="Nome"
@@ -122,9 +129,6 @@ export default function CadastroUsuario() {
           secureTextEntry
         />
 
-        <TouchableOpacity onPress={pickFile} style={styles.registerButton}>
-          <Text style={styles.buttonText}>Selecionar Foto</Text>
-        </TouchableOpacity>
 
         {file && (
           <Image
@@ -175,10 +179,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   imagem: {
-    width: 200,
-    height: 60,
+    width: 240,
+    height: 100,
     resizeMode: 'contain',
-    marginTop: 30,
+    marginTop: 10,
+    flex: 1,
+    justifyContent: 'center',
+    alignItems:'center',
+    marginLeft: 'auto',
+    marginRight:'auto'
   },
   title: {
     fontSize: 28,
@@ -204,6 +213,7 @@ const styles = StyleSheet.create({
     width: '60%',
     alignItems: 'center',
     marginTop: 10,
+    marginBottom: 20,
   },
   buttonText: {
     color: 'black',

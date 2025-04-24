@@ -1,3 +1,6 @@
+// Ana Lívia dos Santos Lopes nº1 DS
+// Isadora Gomes da Silva nº 9
+
 import { db } from '../../../firebaseConfig';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 

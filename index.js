@@ -1,3 +1,6 @@
+// Ana Lívia dos Santos Lopes nº1 DS
+// Isadora Gomes da Silva nº 9
+
 import { registerRootComponent } from 'expo';
 
 import App from './App';
