@@ -3,7 +3,6 @@ import { ScrollView, View, Text, TextInput, TouchableOpacity, Image, FlatList, A
 import { db, auth } from '../../firebaseConfig';
 import { collection, addDoc, query, orderBy, onSnapshot, updateDoc, doc, increment, serverTimestamp, getDoc, setDoc } from 'firebase/firestore';
 import { criarNotificacao } from './services/notificacoesService';
-import { collection, addDoc, query, orderBy, onSnapshot, updateDoc, doc, increment, serverTimestamp, getDoc } from 'firebase/firestore';
 import * as ImagePicker from 'expo-image-picker';
 import s3 from '../../awsConfig';
 
