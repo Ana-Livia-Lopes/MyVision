@@ -79,7 +79,7 @@ export default function ChatScreen() {
 
     const renderItem = ({ item }) => {
         const isMyMessage = item.userEmail === user.email;
-        const isAna = user?.email === 'ana@gmail.com';
+        const isAna = user?.email === 'alguem@gmail.com';
         const userName = userNames[item.userId] || item.userEmail;
 
         return (
@@ -177,7 +177,8 @@ const styles = StyleSheet.create({
     botao: {
         backgroundColor: '#924DBF',
         padding: 10,
-        borderRadius: 15,
+        borderRadius: 10,
         alignItems: 'center',
+        color: "#fff"
     }
 });

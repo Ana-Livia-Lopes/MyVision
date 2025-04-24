@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Image 
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, getFirestore } from 'firebase/firestore';
 import { getApp } from 'firebase/app';
-import '../../firebaseConfig'; 
+import '../../firebaseConfig';
 
 export default function CadastroUsuario() {
     const [nome, setNome] = useState('');
@@ -43,34 +43,36 @@ export default function CadastroUsuario() {
     return (
         <ScrollView contentContainerStyle={styles.container}>
             <View style={styles.efeitoBranco}>
-            <Image source={require("../../assets/logo.png")} style={styles.imagem} />
-                <Text style={styles.title}>Cadastro <br></br>de Usuário</Text>
+                    <Image source={require("../../assets/logo.png")} style={styles.imagem} />
+                <View style={styles.boxRoxo}>
+                    <Text style={styles.title}>Cadastro <br></br>de Usuário</Text>
 
-                <TextInput
-                    style={styles.input}
-                    placeholder="Nome"
-                    value={nome}
-                    onChangeText={setNome}
-                />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Email"
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Senha"
-                    value={senha}
-                    onChangeText={setSenha}
-                    secureTextEntry
-                />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Nome"
+                        value={nome}
+                        onChangeText={setNome}
+                    />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Email"
+                        value={email}
+                        onChangeText={setEmail}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                    />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Senha"
+                        value={senha}
+                        onChangeText={setSenha}
+                        secureTextEntry
+                    />
 
-                <TouchableOpacity onPress={handleRegister} style={styles.registerButton}>
-                    <Text style={styles.buttonText}>Cadastrar</Text>
-                </TouchableOpacity>
+                    <TouchableOpacity onPress={handleRegister} style={styles.registerButton}>
+                        <Text style={styles.buttonText}>Cadastrar</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
         </ScrollView>
     );
@@ -86,10 +88,19 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'white',
-        borderTopLeftRadius: 333,
-        borderBottomRightRadius: 333,
+        borderTopRightRadius: 333,
+        borderBottomLeftRadius: 333,
         width: '100%',
         padding: 20,
+    },
+    boxRoxo:{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#924DBF',
+        width: '80%',
+        padding: 20,
+        height: "100px"
     },
     title: {
         fontSize: 38,
@@ -121,7 +132,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         fontSize: 16,
     },
-    imagem:{
+    imagem: {
         marginBottom: 10,
         width: 290,
         height: 80
